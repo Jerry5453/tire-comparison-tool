@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>房车轮毂智能对比工具</title>
+    <style>
+                /* 新增响应式优化 */
+                .config-card {
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .param-input {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+            .comparison-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 12px;
+            }
+            
+            .config-card {
+                padding: 16px;
+            }
+            
+            .param-input {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+
+        /* 添加弹性布局限制 */
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        :root {
+            --primary-blue: #007AFF;
+            --success-green: #34C759;
+            --error-red: #FF3B30;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --background-base: #F5F5F7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background-base);
+            padding: 16px;
+            margin: 0 auto;
+            max-width: 800px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .config-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .param-group {
+            margin-bottom: 16px;
+        }
+
+        .param-label {
+            display: block;
+            color: var(--text-primary);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .param-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 12px;
+            color: var(--text-primary);
+            border-bottom: 1px solid #E5E5EA;
+        }
+
+        .data-table td {
+            padding: 12px;
+            position: relative;
+        }
+
+        .better {
+            background: rgba(52,199,89,0.1);
+            color: var(--success-green);
+        }
+
+        .worse {
+            background: rgba(255,59,48,0.1);
+            color: var(--error-red);
+        }
+
+        .diff-tag {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .recommendation {
+            background: rgba(52,199,89,0.1);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            
+            .config-card {
+                padding: 16px;
+            }
+            
+            .param-input {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 style="font-size:22px; margin:0 0 24px 0;">房车轮毂智能对比工具</h1>
+    
+    <div class="comparison-grid">
+        <!-- 配置一 -->
+        <div class="config-card">
+            <h2 style="font-size:17px; margin:0 0 16px 0;">配置一（当前）</h2>
+            <div class="param-group">
+                <label class="param-label">轮胎宽度 (mm)</label>
+                <input type="number" class="param-input" id="width1" value="265" min="100" max="400">
+            </div>
+            <div class="param-group">
+                <label class="param-label">扁平比 (%)</label>
+                <input type="number" class="param-input" id="aspect1" value="65" min="30" max="90">
+            </div>
+            <div class="param-group">
+                <label class="param-label">轮毂直径 (英寸)</label>
+                <input type="number" class="param-input" id="rim1" value="17" min="14" max="22">
+            </div>
+        </div>
+
+        <!-- 配置二 -->
+        <div class="config-card">
+            <h2 style="font-size:17px; margin:0 0 16px 0;">配置二（对比）</h2>
+            <div class="param-group">
+                <label class="param-label">轮胎宽度 (mm)</label>
+                <input type="number" class="param-input" id="width2" value="265" min="100" max="400">
+            </div>
+            <div class="param-group">
+                <label class="param-label">扁平比 (%)</label>
+                <input type="number" class="param-input" id="aspect2" value="60" min="30" max="90">
+            </div>
+            <div class="param-group">
+                <label class="param-label">轮毂直径 (英寸)</label>
+                <input type="number" class="param-input" id="rim2" value="18" min="14" max="22">
+            </div>
+        </div>
+    </div>
+
+    <div class="result-card">
+        <h2 style="font-size:17px; margin:0 0 16px 0;">技术参数对比</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:35%;">参数项</th>
+                    <th style="width:30%;">配置一</th>
+                    <th style="width:35%;">配置二</th>
+                </tr>
+            </thead>
+            <tbody id="comparisonBody">
+                <!-- 动态数据 -->
+            </tbody>
+        </table>
+
+        <div class="recommendation" id="recommendation">
+            <h3 style="font-size:15px; margin:0 0 12px 0;">专家建议</h3>
+            <div id="adviceContent" style="font-size:14px;"></div>
+        </div>
+    </div>
+
+    <script>
+        class TireCalculator {
+            static calculate(w, a, r) {
+                const sidewall = w * (a / 100)
+                return {
+                    sidewall: sidewall.toFixed(1),
+                    diameter: (r * 25.4 + sidewall * 2).toFixed(1),
+                    loadIndex: Math.floor(800 + (w * 0.2) + (r * 8)),
+                    rollingRes: (0.005 + (w/1000) * (100 - a)/100).toFixed(3)
+                }
+            }
+
+            static compare(v1, v2, higherBetter = true) {
+                const diff = parseFloat(v1) - parseFloat(v2)
+                return {
+                    value1: v1,
+                    value2: v2,
+                    difference: diff,
+                    class1: diff > 0 ? (higherBetter ? 'better' : 'worse') : '',
+                    class2: diff < 0 ? (higherBetter ? 'better' : 'worse') : ''
+                }
+            }
+        }
+
+        function updateComparison() {
+            const config1 = getConfig(1)
+            const config2 = getConfig(2)
+            
+            const comparisons = {
+                '胎壁厚度 (mm)': TireCalculator.compare(config1.sidewall, config2.sidewall, true),
+                '滚动直径 (mm)': TireCalculator.compare(config1.diameter, config2.diameter, false),
+                '负载能力 (kg)': TireCalculator.compare(config1.loadIndex, config2.loadIndex, true),
+                '滚动阻力 (CR)': TireCalculator.compare(config1.rollingRes, config2.rollingRes, false)
+            }
+
+            updateTable(comparisons)
+            generateAdvice(comparisons)
+        }
+
+        function getConfig(id) {
+            return TireCalculator.calculate(
+                parseFloat(document.getElementById(`width${id}`).value),
+                parseFloat(document.getElementById(`aspect${id}`).value),
+                parseFloat(document.getElementById(`rim${id}`).value)
+            )
+        }
+
+        function updateTable(data) {
+            const tbody = document.getElementById('comparisonBody')
+            tbody.innerHTML = Object.entries(data).map(([key, comp]) => `
+                <tr>
+                    <td>${key}</td>
+                    <td class="${comp.class1}">
+                        ${comp.value1}
+                        ${comp.difference !== 0 ? `
+                            <span class="diff-tag ${comp.class1}">
+                                ${Math.abs(comp.difference).toFixed(1)} ${comp.difference > 0 ? '↑' : '↓'}
+                            </span>
+                        ` : ''}
+                    </td>
+                    <td class="${comp.class2}">
+                        ${comp.value2}
+                        ${comp.difference !== 0 ? `
+                            <span class="diff-tag ${comp.class2}">
+                                ${Math.abs(comp.difference).toFixed(1)} ${comp.difference < 0 ? '↑' : '↓'}
+                            </span>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('')
+        }
+
+        function generateAdvice(comparisons) {
+            const advice = []
+            
+            // 负载能力建议
+            if(comparisons['负载能力 (kg)'].difference > 50) {
+                advice.push(`配置一负载能力更强（+${comparisons['负载能力 (kg)'].difference}kg）`)
+            } else if(comparisons['负载能力 (kg)'].difference < -50) {
+                advice.push(`配置二负载能力更强（+${-comparisons['负载能力 (kg)'].difference}kg）`)
+            }
+
+            // 滚动阻力建议
+            if(comparisons['滚动阻力 (CR)'].difference > 0.002) {
+                advice.push(`配置二滚动阻力更低（燃油经济性优 ${(comparisons['滚动阻力 (CR)'].difference*100).toFixed(1)}%）`)
+            }
+
+            // 胎壁厚度建议
+            if(comparisons['胎壁厚度 (mm)'].difference > 10) {
+                advice.push(`配置一缓冲性能更好（胎壁厚+${comparisons['胎壁厚度 (mm)'].difference}mm）`)
+            }
+
+            const adviceContent = document.getElementById('adviceContent')
+            adviceContent.innerHTML = advice.length > 0 ? 
+                `<ul style="margin:0; padding-left:20px;">${advice.map(a => `<li>${a}</li>`).join('')}</ul>` :
+                '<p>两套配置参数相当，建议根据具体路况选择</p>'
+        }
+
+        // 事件监听
+        document.querySelectorAll('.param-input').forEach(input => {
+            input.addEventListener('input', updateComparison)
+        })
+
+        // 初始加载
+        updateComparison()
+    </script>
+</body>
+</html>
